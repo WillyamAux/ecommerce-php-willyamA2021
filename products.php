@@ -1,3 +1,42 @@
+<?php
+session_start();
+require_once('./db.php');
+if (isset($_GET['id_sort'])){
+  switch ($_GET['id_sort']) {
+    case 2:
+      $pdo = getPdo();
+      $sql = "select * from imagenes , productos where imagenes.productos_id = productos.id group by productos.id order by precio ASC";
+      $consulta = $pdo->prepare($sql);
+      $consulta->execute();
+      $productos = $consulta->fetchALL(PDO::FETCH_ASSOC);
+      break;
+    case 3:
+      $pdo = getPdo();
+      $sql = "select * from imagenes , productos where imagenes.productos_id = productos.id group by productos.id order by puntaje ASC";
+      $consulta = $pdo->prepare($sql);
+      $consulta->execute();
+      $productos = $consulta->fetchALL(PDO::FETCH_ASSOC);
+      break;
+    case 4:
+      $pdo = getPdo();
+      $sql = "select * from imagenes , productos where imagenes.productos_id = productos.id group by productos.id order by nombre ASC";
+      $consulta = $pdo->prepare($sql);
+      $consulta->execute();
+      $productos = $consulta->fetchALL(PDO::FETCH_ASSOC);
+      break;   
+  }
+}else{
+  $pdo = getPdo();
+  $sql = "select * from imagenes , productos where imagenes.productos_id = productos.id group by productos.id";
+  $consulta = $pdo->prepare($sql);
+  $consulta->execute();
+  $productos = $consulta->fetchALL(PDO::FETCH_ASSOC);
+}
+
+
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,22 +57,42 @@
     <div class="container">
       <div class="navbar">
         <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.png" alt="" width="125px"
+          <a href="index.php">
+            <img src="images/logo.png" alt="" width="170px"
           /></a>
         </div>
         <nav>
           <ul id="MenuItems">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="">About</a></li>
-            <li><a href="">Contact</a></li>
-            <li><a href="account.html">Account</a></li>
+            <li><a href="index.php">Home</a></li>
+            <li><a href="products.php">Products</a></li>
+            <li><?php 
+
+              if (isset($_SESSION['logueado']) && isset($_SESSION['user'])){
+                $userLogueado = $_SESSION['user'];
+                $nombreUser = $userLogueado['nombre'];
+                echo "<a href='profile.php'>Bienvenido $nombreUser </a>";
+              }else {
+                echo '<a href="account.php">Account</a>';
+              }
+              ?>
+              <li>  
+              <?php 
+              if (isset($_SESSION['logueado']) && isset($_SESSION['user'])){
+                $userLogueado = $_SESSION['user'];
+                $nombreUser = $userLogueado['nombre'];
+                echo "<a href='logout.php'>Logout </a>";
+              }else {
+                echo '';
+              
+              }
+              ?>
+            
+            </li>
             <!-- TODo: 22:20 -->
           </ul>
         </nav>
-        <a href="cart.html"
-          ><img src="images/cart.png" alt="" width="30px" height="30px"
+        <a href="cart.php"
+          ><img src="images/cart.png" alt="" width="80px" height="80px"
         /></a>
         <img
           src="images/menu.png"
@@ -47,212 +106,42 @@
     <div class="small-container">
       <div class="row row-2">
         <h2>All Products</h2>
-        <select name="" id="">
-          <option value="">Default Sorting</option>
-          <option value="">Sort by Price</option>
-          <option value="">Sort by Popularity</option>
-          <option value="">Sort by Rating</option>
-          <option value="">Sort by sales</option>
+        <select name="sort" onchange="location = this.value;">
+          <option value="">Order By</option>
+          <option value="products.php">Default Sorting</option>
+          <option value="products.php?id_sort=2">Sort by Price</option>
+          <option value="products.php?id_sort=3">Sort by Rating</option>
+          <option value="products.php?id_sort=4">Sort by Name</option>
         </select>
       </div>
 
       <div class="row">
+       <?php foreach ($productos as $prod) {  ?>
         <div class="col-4">
-          <img src="images/product-1.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
+          <a href=" <?php echo "product-details.php?id=".$prod['id']; ?>"> <img src="images/<?php echo $prod['url']; ?>" alt="" />
+          <h4>
+          <a href=" <?php echo "product-details.php?id=".$prod['id']; ?>"> <?php echo $prod['nombre']; ?></a>
+          </h4>
           <div class="rating">
             <i class="fa fa-star"></i>
             <i class="fa fa-star"></i>
             <i class="fa fa-star"></i>
             <i class="fa fa-star"></i>
             <i class="fa fa-star-o"></i>
+            <i><?php echo $prod['puntaje']; ?></i>  
           </div>
-          <p>$50.00</p>
-        </div>
-
-        <div class="col-4">
-          <img src="images/product-2.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-half-o"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-
-        <div class="col-4">
-          <img src="images/product-3.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-half-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-        <div class="col-4">
-          <img src="images/product-4.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-4">
-          <img src="images/product-5.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-
-        <div class="col-4">
-          <img src="images/product-6.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-half-o"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-
-        <div class="col-4">
-          <img src="images/product-7.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-half-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-        <div class="col-4">
-          <img src="images/product-8.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-4">
-          <img src="images/product-9.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-
-        <div class="col-4">
-          <img src="images/product-10.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-half-o"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-
-        <div class="col-4">
-          <img src="images/product-11.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-half-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
-        <div class="col-4">
-          <img src="images/product-12.jpg" alt="" />
-          <h4>Red Printed T-shirt</h4>
-          <div class="rating">
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star"></i>
-            <i class="fa fa-star-o"></i>
-          </div>
-          <p>$50.00</p>
-        </div>
+          <p>$<?php echo $prod['precio']; ?></p>
+        </div> 
+        <?php } ?>
       </div>
 
-      <div class="page-btn">
-        <span>1</span>
-        <span>2</span>
-        <span>3</span>
-        <span>4</span>
-        <span>&#8594;</span>
-      </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
       <div class="container">
         <div class="row">
-          <div class="footer-col-1">
-            <h3>Download Our App</h3>
-            <p>
-              Download App for Android <br />
-              and ios mobile phone
-            </p>
-            <div class="app-logo">
-              <img src="images/play-store.png" alt="" />
-              <img src="images/app-store.png" alt="" />
-            </div>
-          </div>
-          <div class="footer-col-2">
-            <img src="images/logo-white.png" alt="" />
-            <p>
-              Lorem, ipsum dolor sit amet consectetur <br />adipisicing elit.
-              Porro, eum?
-            </p>
-          </div>
-          <div class="footer-col-3">
-            <h3>Useful Links</h3>
-            <ul>
-              <li>Coupons</li>
-              <li>Blog Post</li>
-              <li>Return Policy</li>
-              <li>Join Affiliate</li>
-            </ul>
-          </div>
+          
 
           <div class="footer-col-4">
             <h3>Follow us</h3>
@@ -265,7 +154,7 @@
           </div>
         </div>
         <hr />
-        <p class="copyright">Copyright 2020 - introidx</p>
+        <p class="copyright">Copyright 2021 - introidx</p>
       </div>
     </div>
     <!-- JS for Toggle menu -->

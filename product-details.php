@@ -1,3 +1,24 @@
+<?php
+session_start();
+$usuario=$_SESSION['user'];
+require_once('./db.php');
+
+
+$pdo = getPdo();
+
+$idParam = $_GET['id'];
+$sql = "select * from productos where id= ?";
+$sqlImagenes ="select * from imagenes where productos_id = ?";
+$consulta = $pdo->prepare($sql);
+$consulta->execute([$idParam]);
+$consultaImagenes = $pdo->prepare($sqlImagenes);
+$consultaImagenes->execute([$idParam]);
+$productos=$consulta->fetch(PDO::FETCH_ASSOC);
+$imagenes=$consultaImagenes->fetchALL(PDO::FETCH_ASSOC);
+
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,21 +39,20 @@
     <div class="container">
       <div class="navbar">
         <div class="logo">
-          <a href="index.html">
-            <img src="images/logo.png" alt="" width="125px"
+          <a href="index.php">
+            <img src="images/logo.png" alt="" width="170px"
           /></a>
         </div>
         <nav>
           <ul id="MenuItems">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="">About</a></li>
-            <li><a href="">Contact</a></li>
-            <li><a href="account.html">Account</a></li>
+            <li><a href="index.php">Home</a></li>
+            <li><a href="products.php">Products</a></li>
+            <li><a href="account.php">Account</a></li>
+            <li><a href="account.php">Logout</a></li>
             <!-- TODo: 22:20 -->
           </ul>
         </nav>
-        <a href="cart.html"
+        <a href="cart.php"
           ><img src="images/cart.png" alt="" width="30px" height="30px"
         /></a>
         <img
@@ -48,43 +68,43 @@
     <div class="small-container single-product">
       <div class="row">
         <div class="col-2">
-          <img src="images/gallery-1.jpg" width="100%" id="ProductImg" />
+
+        <?php 
+        $primeraImagen = current ($imagenes);
+        
+        ?>
+          <img src="images/<?php echo $primeraImagen['url'] ?>" width="100%" id="ProductImg" />
 
           <div class="small-img-row">
+          <?php foreach ($imagenes as $imagen ) { ?>
+      
             <div class="small-img-col">
-              <img src="images/gallery-1.jpg" class="small-img" />
+              <img src="images/<?php echo $imagen['url']; ?>" class="small-img" />
             </div>
-            <div class="small-img-col">
-              <img src="images/gallery-2.jpg" class="small-img" />
-            </div>
-            <div class="small-img-col">
-              <img src="images/gallery-3.jpg" class="small-img" />
-            </div>
-            <div class="small-img-col">
-              <img src="images/gallery-4.jpg" class="small-img" />
-            </div>
+          <?php } ?>
           </div>
         </div>
         <div class="col-2">
           <p>Home / T-shirt</p>
-          <h2>Red Printed T-Shirt By HRX</h2>
-          <h4>$50.00</h4>
-          <select name="" id="">
+          <h2><?php echo $productos['nombre']?></h2>
+          <h4>$<?php echo $productos['precio']?></h4>
+          <form action ="addToCart.php" method="post">
+          <select required name = "talla" >
             <option value="">Select Size</option>
-            <option value="">XXL</option>
-            <option value="">XL</option>
-            <option value="">Large</option>
-            <option value="">Medium</option>
-            <option value="">Small</option>
+            <option value="XXL">XXL</option>
+            <option value="XL">XL</option>
+            <option value="L">Large</option>
+            <option value="M">Medium</option>
+            <option value="S">Small</option>
           </select>
-          <input type="number" value="1" />
-          <a href="" class="btn">Add to Cart</a>
+          <input name="cantidad" type="number" value="1" />
+          <input name="idProducto" type="hidden" value="<?php echo $productos['id'] ?>" />
+          <input  type="submit" href="" class="btn" value ="Add to Cart"></input>
+          </form>
           <h3>Product Details<i class="fa fa-indent"></i></h3>
           <br />
           <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Fugit nemo
-            nam magnam rerum sunt explicabo! Distinctio ipsam doloremque nostrum
-            ipsum?
+          <?php echo $productos['descripcion']?>
           </p>
         </div>
       </div>
@@ -159,34 +179,7 @@
     <div class="footer">
       <div class="container">
         <div class="row">
-          <div class="footer-col-1">
-            <h3>Download Our App</h3>
-            <p>
-              Download App for Android <br />
-              and ios mobile phone
-            </p>
-            <div class="app-logo">
-              <img src="images/play-store.png" alt="" />
-              <img src="images/app-store.png" alt="" />
-            </div>
-          </div>
-          <div class="footer-col-2">
-            <img src="images/logo-white.png" alt="" />
-            <p>
-              Lorem, ipsum dolor sit amet consectetur <br />adipisicing elit.
-              Porro, eum?
-            </p>
-          </div>
-          <div class="footer-col-3">
-            <h3>Useful Links</h3>
-            <ul>
-              <li>Coupons</li>
-              <li>Blog Post</li>
-              <li>Return Policy</li>
-              <li>Join Affiliate</li>
-            </ul>
-          </div>
-
+          
           <div class="footer-col-4">
             <h3>Follow us</h3>
             <ul>
@@ -198,7 +191,7 @@
           </div>
         </div>
         <hr />
-        <p class="copyright">Copyright 2020 - introidx</p>
+        <p class="copyright">Copyright 2021 - introidx</p>
       </div>
     </div>
     <!-- JS for Toggle menu -->

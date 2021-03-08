@@ -1,3 +1,35 @@
+
+<?php
+session_start();
+if ($_SESSION['cart']){
+  $usuario = $_SESSION['cart'];
+  require_once('./db.php');
+  $pdo = getPdo();
+  $total = 0;
+
+
+  foreach ($usuario as $key => $value) {
+    $idParam = $value['idProducto'];
+    $cantidad[] = $value['cantidad'];
+    $talla[] = $value['talla'];
+    $sql = "select * from productos where id= ?";
+    $sqlImagenes = "select * from imagenes where productos_id = ?";
+    $consulta = $pdo->prepare($sql);
+    $consulta->execute([$idParam]);
+    $consultaImagenes = $pdo->prepare($sqlImagenes);
+    $consultaImagenes->execute([$idParam]);
+    $productos[] = $consulta->fetchAll(PDO::FETCH_ASSOC);
+    $imagenes[] = $consultaImagenes->fetchALL(PDO::FETCH_ASSOC);
+  }
+}else{
+  header('location: products.php');
+}
+
+
+
+
+
+?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -18,23 +50,44 @@
     <div class="container">
       <div class="navbar">
         <div class="logo">
-          <a href="index.html">
+          <a href="index.php">
             <img src="images/logo.png" alt="" width="125px"
           /></a>
         </div>
         <nav>
+
           <ul id="MenuItems">
-            <li><a href="index.html">Home</a></li>
-            <li><a href="products.html">Products</a></li>
-            <li><a href="">About</a></li>
-            <li><a href="">Contact</a></li>
-            <li><a href="account.html">Account</a></li>
+            <li><a href="index.php">Home</a></li>
+            <li><a href="products.php">Products</a></li>
+            <li><?php 
+
+              if (isset($_SESSION['logueado']) && isset($_SESSION['user'])){
+                $userLogueado = $_SESSION['user'];
+                $nombreUser = $userLogueado['nombre'];
+                echo "<a href='profile.php'>Bienvenido $nombreUser </a>";
+              }else {
+                echo '<a href="account.php">Account</a>';
+              }
+              ?>
+              <li>  
+              <?php 
+              if (isset($_SESSION['logueado']) && isset($_SESSION['user'])){
+                $userLogueado = $_SESSION['user'];
+                $nombreUser = $userLogueado['nombre'];
+                echo "<a href='logout.php'>Logout </a>";
+              }else {
+                echo '';
+              
+              }
+              ?>
+            
+            </li>
             <!-- TODo: 22:20 -->
           </ul>
         </nav>
-        <a href="cart.html"
-          ><img src="images/cart.png" alt="" width="30px" height="30px"
-        /></a>
+        <a href="cart.php"
+          ><img src="images/cart.png" alt="" width="80px" height="80px"
+        /><?php echo count($_SESSION['cart']); ?></a>
         <img
           src="images/menu.png"
           alt=""
@@ -50,70 +103,65 @@
         <tr>
           <th>Product</th>
           <th>Quantity</th>
+          <th>Size</th>
           <th>Subtotal</th>
         </tr>
-        <tr>
-          <td>
-            <div class="cart-info">
-              <img src="images/buy-1.jpg" alt="" />
-              <div>
-                <p>Red Printed T-shirt</p>
-                <small>Price: $50.00</small>
-                <br />
-                <a href="">Remove</a>
-              </div>
-            </div>
-          </td>
-          <td><input type="nunber" value="1" /></td>
-          <td>$50.00</td>
-        </tr>
 
+        <?php 
+        //$primeraImagen = current ($imagenes);
+        foreach ($productos as $llave1 => $key ) {
+          foreach ($key as $value) {
+        ?>
         <tr>
           <td>
             <div class="cart-info">
-              <img src="images/buy-2.jpg" alt="" />
-              <div>
-                <p>Red Printed T-shirt</p>
-                <small>Price: $50.00</small>
-                <br />
-                <a href="">Remove</a>
-              </div>
-            </div>
-          </td>
-          <td><input type="nunber" value="1" /></td>
-          <td>$50.00</td>
-        </tr>
+            <?php foreach ($imagenes as $llave => $imagen){
+              if ($llave1 == $llave){
+                foreach ($imagen as  $url){
+            ?>   
+              <img src="images/<?php echo $url['url'] ?>" alt="" />
+              <?php } ?>
+            <?php } ?>
+            <?php } ?>
 
-        <tr>
-          <td>
-            <div class="cart-info">
-              <img src="images/buy-3.jpg" alt="" />
               <div>
-                <p>Red Printed T-shirt</p>
-                <small>Price: $50.00</small>
+                <p><?php echo $value['nombre']; ?></p>
+                <small>Price: $<?php echo $value['precio']; ?></small>
                 <br />
-                <a href="">Remove</a>
+                <a href="removeProducto.php?id_producto=<?php echo $llave1; ?>">Remove</a>
               </div>
             </div>
           </td>
-          <td><input type="nunber" value="1" /></td>
-          <td>$50.00</td>
+          <td><input type="number" disabled value="<?php echo $cantidad[$llave1]; ?>" /></td>
+          <td><input type="text" disabled value="<?php echo $talla[$llave1]; ?>" /></td>
+          <?php 
+          $suma = $cantidad[$llave1]* $value['precio'];
+          $sumaTotal[]= $suma;
+          ?>
+          <td><?php echo $suma; ?></td>
         </tr>
+        <?php } ?>
+        <?php } ?>
       </table>
 
       <div class="total-price">
         <table>
           <tr>
             <td>Subtotal</td>
-            <td>$200.00</td>
+            <td>$<?php foreach ($sumaTotal as $key => $value){
+              $total += $value; 
+            }
+            echo $total; ?></td>
           </tr>
           <tr>
-            <td>Tax</td>
-            <td>$30.00</td>
+            <td>IVA</td>
+            <?php $iva = $total * 0.19; ?>
+            <td>$<?php echo $iva; ?></td>
           </tr>
           <tr>
             <td>Total</td>
-            <td>$230.00</td>
+            <?php $totalProductos = $total + $iva ;?>
+            <td>$<?php echo $totalProductos; ?></td>
           </tr>
         </table>
       </div>
@@ -122,34 +170,7 @@
     <div class="footer">
       <div class="container">
         <div class="row">
-          <div class="footer-col-1">
-            <h3>Download Our App</h3>
-            <p>
-              Download App for Android <br />
-              and ios mobile phone
-            </p>
-            <div class="app-logo">
-              <img src="images/play-store.png" alt="" />
-              <img src="images/app-store.png" alt="" />
-            </div>
-          </div>
-          <div class="footer-col-2">
-            <img src="images/logo-white.png" alt="" />
-            <p>
-              Lorem, ipsum dolor sit amet consectetur <br />adipisicing elit.
-              Porro, eum?
-            </p>
-          </div>
-          <div class="footer-col-3">
-            <h3>Useful Links</h3>
-            <ul>
-              <li>Coupons</li>
-              <li>Blog Post</li>
-              <li>Return Policy</li>
-              <li>Join Affiliate</li>
-            </ul>
-          </div>
-
+         
           <div class="footer-col-4">
             <h3>Follow us</h3>
             <ul>
@@ -161,7 +182,7 @@
           </div>
         </div>
         <hr />
-        <p class="copyright">Copyright 2020 - introidx</p>
+        <p class="copyright">Copyright 2021 - introidx</p>
       </div>
     </div>
     <!-- JS for Toggle menu -->

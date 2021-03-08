@@ -74,6 +74,9 @@ p {
   border-radius: 5px;
   transition: background 0.5s;
 }
+.single-product input.btn {
+  width: 130px !important;
+}
 
 .btn:hover {
   background-color: #563434; /* Green */
@@ -81,7 +84,7 @@ p {
 }
 
 .header {
-  background: radial-gradient(#fff, #ffd6d6);
+  background: radial-gradient(#fff, #1a1af1);
 }
 
 .header .row {
@@ -159,7 +162,7 @@ h4 {
 }
 /*     offer     */
 .offer {
-  background: radial-gradient(#fff, #ffd6d6);
+  background: radial-gradient(#fff, #111ed4);
   margin-top: 80px;
   padding: 30px 0;
 }
@@ -448,7 +451,7 @@ td {
   padding: 10px 5px;
 }
 td input {
-  width: 40px;
+  width: 50px;
   height: 30px;
   padding: 5px;
 }
